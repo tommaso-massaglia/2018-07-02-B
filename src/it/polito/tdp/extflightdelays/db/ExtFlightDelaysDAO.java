@@ -11,6 +11,7 @@ import java.util.List;
 import it.polito.tdp.extflightdelays.model.Airline;
 import it.polito.tdp.extflightdelays.model.Airport;
 import it.polito.tdp.extflightdelays.model.Flight;
+import it.polito.tdp.extflightdelays.model.SimpleLink;
 
 public class ExtFlightDelaysDAO {
 
@@ -79,6 +80,32 @@ public class ExtFlightDelaysDAO {
 						rs.getTimestamp("SCHEDULED_DEPARTURE_DATE").toLocalDateTime(), rs.getDouble("DEPARTURE_DELAY"),
 						rs.getDouble("ELAPSED_TIME"), rs.getInt("DISTANCE"),
 						rs.getTimestamp("ARRIVAL_DATE").toLocalDateTime(), rs.getDouble("ARRIVAL_DELAY"));
+				result.add(flight);
+			}
+
+			conn.close();
+			return result;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Errore connessione al database");
+			throw new RuntimeException("Error Connection Database");
+		}
+	}
+
+	public List<SimpleLink> loadAllLinks() {
+		String sql = "SELECT f1.ORIGIN_AIRPORT_ID, f1.DESTINATION_AIRPORT_ID, AVG(f1.ELAPSED_TIME) AS elapsed FROM flights AS f1\r\n"
+				+ "GROUP BY f1.ORIGIN_AIRPORT_ID, f1.DESTINATION_AIRPORT_ID";
+		List<SimpleLink> result = new LinkedList<SimpleLink>();
+
+		try {
+			Connection conn = ConnectDB.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			ResultSet rs = st.executeQuery();
+
+			while (rs.next()) {
+				SimpleLink flight = new SimpleLink(rs.getInt("ORIGIN_AIRPORT_ID"), rs.getInt("DESTINATION_AIRPORT_ID"),
+						rs.getDouble("elapsed"));
 				result.add(flight);
 			}
 
